@@ -166,3 +166,15 @@ npm run build
 - If AI suggestions fail, confirm Ollama is running and `llama3` is available.
 - If frontend cannot reach API, ensure backend is running and proxy target matches backend URL.
 - If login fails for seeded admin, restart backend to re-run seeding health checks.
+
+## License
+This project is free for non-commercial use.
+
+Commercial use requires a separate license from Franco Neil Glovasa.
+
+If you plan to use this system in any paid, revenue-generating, or business environment,
+please contact the Franco Neil Glovasa to obtain a commercial license.
+
+visit this website for more info:
+
+https://franconeil.glovasa.org/
