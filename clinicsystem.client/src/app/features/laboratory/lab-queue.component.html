@@ -1,0 +1,80 @@
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h2 class="text-lg font-semibold text-gray-800">Laboratory Queue</h2>
+    <button (click)="load()" class="btn-secondary text-sm">Refresh</button>
+  </div>
+
+  <div class="card p-0 overflow-hidden">
+    <div *ngIf="loading" class="text-center py-12 text-gray-400">Loading lab queue...</div>
+    <table *ngIf="!loading" class="w-full text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Patient</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Test</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Requested By</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Status</th>
+          <th class="py-3 px-4"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let req of requests" class="border-t border-gray-100 hover:bg-gray-50">
+          <td class="py-3 px-4 font-medium">{{ req.patientName }}</td>
+          <td class="py-3 px-4">
+            <p class="font-medium">{{ req.testName }}</p>
+            <p class="text-xs text-gray-500">{{ req.testType }}</p>
+          </td>
+          <td class="py-3 px-4 text-gray-500">{{ req.requestedByDoctorName || 'N/A' }}</td>
+          <td class="py-3 px-4"><span class="badge-pending">{{ req.status }}</span></td>
+          <td class="py-3 px-4 text-right">
+            <button (click)="openResultForm(req)" class="btn-primary text-xs">Enter Result</button>
+          </td>
+        </tr>
+        <tr *ngIf="requests.length === 0">
+          <td colspan="5" class="py-12 text-center text-gray-400">No pending requests.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Result Modal -->
+  <div *ngIf="selectedRequest" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl p-6 m-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-lg">Lab Result — {{ selectedRequest.testName }}</h3>
+        <button (click)="selectedRequest = null" class="text-gray-400 hover:text-gray-600 text-xl">×</button>
+      </div>
+      <form [formGroup]="resultForm" (ngSubmit)="saveResult()" class="space-y-4">
+        <div>
+          <label class="form-label">Findings *</label>
+          <textarea formControlName="findings" rows="4" class="form-input"></textarea>
+        </div>
+        <div>
+          <label class="form-label">Notes</label>
+          <textarea formControlName="notes" rows="2" class="form-input"></textarea>
+        </div>
+        <div>
+          <label class="form-label">Result Date *</label>
+          <input type="datetime-local" formControlName="resultDate" class="form-input">
+        </div>
+
+        <div *ngIf="savedResultId" class="border-t pt-4">
+          <label class="form-label">Attachments (X-ray / Ultrasound / Docs)</label>
+          <input type="file" (change)="onFilesSelected($event)" multiple accept=".jpg,.jpeg,.png,.pdf,.dcm" class="form-input">
+          <div class="mt-2 flex flex-wrap gap-2">
+            <span *ngFor="let f of selectedFiles" class="text-xs bg-gray-100 px-2 py-1 rounded">{{ f.name }}</span>
+          </div>
+          <button type="button" *ngIf="selectedFiles.length > 0" (click)="uploadFiles()" [disabled]="uploading" class="btn-secondary text-sm mt-2">
+            {{ uploading ? 'Uploading...' : 'Upload Files' }}
+          </button>
+          <p *ngIf="uploadMessage" class="text-green-600 text-sm mt-1">{{ uploadMessage }}</p>
+        </div>
+
+        <div *ngIf="error" class="text-red-600 text-sm">{{ error }}</div>
+        <div class="flex gap-3">
+          <button type="submit" [disabled]="saving" class="btn-primary">{{ saving ? 'Saving...' : 'Save Result' }}</button>
+          <button type="button" (click)="selectedRequest = null" class="btn-secondary">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

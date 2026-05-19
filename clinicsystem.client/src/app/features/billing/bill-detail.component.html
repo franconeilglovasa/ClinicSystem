@@ -1,0 +1,106 @@
+<div class="space-y-4" *ngIf="!loading; else loadingTpl">
+  <div class="flex items-center justify-between">
+    <a routerLink="/app/billing" class="text-blue-600 hover:underline text-sm">← Billing Queue</a>
+    <h2 class="font-semibold text-gray-800">Bill Management</h2>
+  </div>
+
+  <div class="card" *ngIf="bill">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+      <div><p class="text-gray-500">Patient</p><p class="font-medium">{{ bill.patientName }}</p></div>
+      <div><p class="text-gray-500">Total</p><p class="font-medium">{{ bill.totalAmount | currency:'PHP ':'symbol':'1.2-2' }}</p></div>
+      <div><p class="text-gray-500">Paid</p><p class="font-medium">{{ bill.paidAmount | currency:'PHP ':'symbol':'1.2-2' }}</p></div>
+      <div><p class="text-gray-500">Balance</p><p class="font-medium text-red-600">{{ bill.balance | currency:'PHP ':'symbol':'1.2-2' }}</p></div>
+    </div>
+    <div class="flex gap-2 no-print">
+      <button (click)="showItemForm = !showItemForm" class="btn-secondary text-sm">+ Add Item</button>
+      <button (click)="showPaymentForm = !showPaymentForm" class="btn-primary text-sm">Record Payment</button>
+      <button (click)="printReceipt()" class="btn-secondary text-sm">🖨 Print Receipt</button>
+    </div>
+  </div>
+
+  <div *ngIf="showItemForm" class="card no-print">
+    <h3 class="font-medium text-gray-800 mb-3">Add Bill Item</h3>
+    <form [formGroup]="itemForm" (ngSubmit)="addItem()" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <input type="text" formControlName="description" class="form-input" placeholder="Description">
+      <select formControlName="category" class="form-input">
+        <option>Consultation</option><option>Laboratory</option><option>Procedure</option><option>Medication</option><option>Other</option>
+      </select>
+      <input type="number" formControlName="unitPrice" class="form-input" placeholder="Unit price">
+      <input type="number" formControlName="quantity" class="form-input" placeholder="Qty">
+      <button type="submit" class="btn-primary md:col-span-4">Add Item</button>
+    </form>
+  </div>
+
+  <div *ngIf="showPaymentForm" class="card no-print">
+    <h3 class="font-medium text-gray-800 mb-3">Record Payment</h3>
+    <form [formGroup]="paymentForm" (ngSubmit)="recordPayment()" class="flex gap-3 items-end">
+      <div class="flex-1">
+        <label class="form-label">Amount</label>
+        <input type="number" formControlName="amount" class="form-input" placeholder="0.00">
+      </div>
+      <div class="flex-1">
+        <label class="form-label">Notes</label>
+        <input type="text" formControlName="notes" class="form-input" placeholder="Optional notes">
+      </div>
+      <button type="submit" class="btn-primary">Save Payment</button>
+    </form>
+  </div>
+
+  <div class="card" *ngIf="bill">
+    <h3 class="font-medium text-gray-800 mb-3">Bill Items</h3>
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="text-left py-2 px-3">Description</th>
+          <th class="text-left py-2 px-3">Category</th>
+          <th class="text-left py-2 px-3">Qty</th>
+          <th class="text-left py-2 px-3">Unit</th>
+          <th class="text-left py-2 px-3">Total</th>
+          <th class="py-2 px-3 no-print"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of bill.items" class="border-t border-gray-100">
+          <td class="py-2 px-3">{{ item.description }}</td>
+          <td class="py-2 px-3">{{ item.category }}</td>
+          <td class="py-2 px-3">{{ item.quantity }}</td>
+          <td class="py-2 px-3">{{ item.unitPrice | currency:'PHP ':'symbol':'1.2-2' }}</td>
+          <td class="py-2 px-3 font-medium">{{ item.totalPrice | currency:'PHP ':'symbol':'1.2-2' }}</td>
+          <td class="py-2 px-3 text-right no-print">
+            <button (click)="deleteItem(item.itemId)" class="text-red-600 hover:text-red-800 text-xs">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Print receipt -->
+  <div id="receiptArea" class="hidden print:block" *ngIf="bill">
+    <div class="p-6 text-sm">
+      <h2 class="text-center text-xl font-bold">ClinicSystem Official Receipt</h2>
+      <p class="text-center">Date: {{ today | date:'MMM d, y h:mm a' }}</p>
+      <hr class="my-3">
+      <p><strong>Patient:</strong> {{ bill.patientName }}</p>
+      <p><strong>Visit ID:</strong> {{ bill.visitId }}</p>
+      <table class="w-full mt-4 border-collapse">
+        <thead><tr><th class="border px-2 py-1 text-left">Description</th><th class="border px-2 py-1">Qty</th><th class="border px-2 py-1">Total</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let i of bill.items">
+            <td class="border px-2 py-1">{{ i.description }}</td>
+            <td class="border px-2 py-1 text-center">{{ i.quantity }}</td>
+            <td class="border px-2 py-1 text-right">{{ i.totalPrice | currency:'PHP ':'symbol':'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="mt-4 text-right">
+        <p><strong>Total:</strong> {{ bill.totalAmount | currency:'PHP ':'symbol':'1.2-2' }}</p>
+        <p><strong>Paid:</strong> {{ bill.paidAmount | currency:'PHP ':'symbol':'1.2-2' }}</p>
+        <p><strong>Balance:</strong> {{ bill.balance | currency:'PHP ':'symbol':'1.2-2' }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="text-center py-12 text-gray-400">Loading bill...</div>
+</ng-template>

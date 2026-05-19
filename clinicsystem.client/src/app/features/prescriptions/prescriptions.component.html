@@ -1,0 +1,91 @@
+<div class="space-y-4">
+  <div class="flex items-center justify-between no-print">
+    <h3 class="font-semibold text-gray-800">Prescriptions</h3>
+    <button *ngIf="hasRole('Admin','Doctor')" (click)="showForm = !showForm" class="btn-primary text-sm">+ New Prescription</button>
+  </div>
+
+  <!-- New Prescription Form -->
+  <div *ngIf="showForm" class="card no-print">
+    <form [formGroup]="rxForm" (ngSubmit)="createPrescription()" class="space-y-4">
+      <div>
+        <label class="form-label">General Instructions</label>
+        <textarea formControlName="instructions" rows="2" class="form-input"></textarea>
+      </div>
+
+      <div class="space-y-3">
+        <h4 class="text-sm font-medium text-gray-700">Medication Items</h4>
+        <div *ngFor="let item of rxItems; let i = index" class="grid grid-cols-1 md:grid-cols-5 gap-2 p-3 bg-gray-50 rounded-lg">
+          <input [(ngModel)]="item.medication" [ngModelOptions]="{standalone:true}" class="form-input text-sm" placeholder="Medication">
+          <input [(ngModel)]="item.dosage" [ngModelOptions]="{standalone:true}" class="form-input text-sm" placeholder="Dosage">
+          <input [(ngModel)]="item.frequency" [ngModelOptions]="{standalone:true}" class="form-input text-sm" placeholder="Frequency">
+          <input [(ngModel)]="item.duration" [ngModelOptions]="{standalone:true}" class="form-input text-sm" placeholder="Duration">
+          <div class="flex gap-2">
+            <input [(ngModel)]="item.instructions" [ngModelOptions]="{standalone:true}" class="form-input text-sm" placeholder="Notes">
+            <button type="button" (click)="removeItem(i)" class="text-red-600 hover:text-red-800 px-2">×</button>
+          </div>
+        </div>
+        <button type="button" (click)="addItem()" class="btn-secondary text-sm">+ Add Medication</button>
+      </div>
+
+      <div *ngIf="error" class="text-red-600 text-sm">{{ error }}</div>
+      <div class="flex gap-3">
+        <button type="submit" [disabled]="saving" class="btn-primary">{{ saving ? 'Saving...' : 'Save Prescription' }}</button>
+        <button type="button" (click)="showForm = false" class="btn-secondary">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Prescriptions List -->
+  <div *ngIf="prescriptions.length === 0" class="card text-center text-gray-400 py-8">No prescriptions yet.</div>
+  <div *ngFor="let rx of prescriptions" class="card">
+    <div class="flex items-start justify-between mb-3">
+      <div>
+        <p class="font-semibold text-gray-900">Prescription · {{ rx.date | date:'MMM d, y h:mm a' }}</p>
+        <p class="text-sm text-gray-500">Doctor: {{ rx.doctorName || 'N/A' }}</p>
+      </div>
+      <div class="flex gap-2 no-print">
+        <button (click)="printPrescription(rx)" class="btn-secondary text-sm">🖨 Print</button>
+        <button *ngIf="hasRole('Admin','Doctor')" (click)="deletePrescription(rx.prescriptionId)" class="btn-danger text-sm">Delete</button>
+      </div>
+    </div>
+
+    <ul class="space-y-2">
+      <li *ngFor="let item of rx.items" class="p-2 bg-gray-50 rounded text-sm">
+        <span class="font-medium">{{ item.medication }}</span>
+        <span class="text-gray-500"> · {{ item.dosage }} · {{ item.frequency }} · {{ item.duration }}</span>
+        <span *ngIf="item.instructions" class="block text-xs text-gray-500 mt-1">{{ item.instructions }}</span>
+      </li>
+    </ul>
+
+    <p *ngIf="rx.instructions" class="text-sm text-gray-600 mt-3"><strong>Instructions:</strong> {{ rx.instructions }}</p>
+  </div>
+
+  <!-- Print Template -->
+  <div id="printArea" class="hidden print:block">
+    <div *ngIf="selectedForPrint" class="p-6">
+      <div class="text-center mb-4">
+        <h2 class="text-xl font-bold">ClinicSystem Medical Center</h2>
+        <p class="text-sm">123 Medical Drive · (000) 000-0000</p>
+      </div>
+      <hr class="my-4">
+      <div class="grid grid-cols-2 gap-4 text-sm mb-4">
+        <p><strong>Patient:</strong> {{ selectedForPrint.patientName }}</p>
+        <p><strong>Date:</strong> {{ selectedForPrint.date | date:'MMM d, y' }}</p>
+        <p><strong>Doctor:</strong> {{ selectedForPrint.doctorName }}</p>
+        <p><strong>License:</strong> {{ selectedForPrint.doctorLicense || 'N/A' }}</p>
+      </div>
+      <h3 class="font-semibold mb-2">Rx</h3>
+      <ul class="space-y-2 text-sm">
+        <li *ngFor="let i of selectedForPrint.items">
+          <strong>{{ i.medication }}</strong> — {{ i.dosage }}, {{ i.frequency }}, {{ i.duration }}
+          <span *ngIf="i.instructions">({{ i.instructions }})</span>
+        </li>
+      </ul>
+      <p *ngIf="selectedForPrint.instructions" class="mt-4 text-sm"><strong>Instructions:</strong> {{ selectedForPrint.instructions }}</p>
+      <div class="mt-12 text-right text-sm">
+        <p>_______________________</p>
+        <p>{{ selectedForPrint.doctorName }}</p>
+      </div>
+    </div>
+  </div>
+</div>

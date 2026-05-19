@@ -1,0 +1,90 @@
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h2 class="text-lg font-semibold text-gray-800">Visit Queue — Today</h2>
+    <button *ngIf="hasRole('Admin','Nurse')" (click)="showNewVisit = true" class="btn-primary">+ New Visit</button>
+  </div>
+
+  <!-- Status Filter -->
+  <div class="flex gap-2 flex-wrap">
+    <button *ngFor="let s of statuses" (click)="filterStatus = s; loadVisits()"
+            [class]="filterStatus === s ? 'px-3 py-1 rounded-full text-sm font-medium bg-blue-600 text-white' : 'px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200'">
+      {{ s || 'All' }}
+    </button>
+  </div>
+
+  <div class="card p-0 overflow-hidden">
+    <div *ngIf="loading" class="text-center py-12 text-gray-400">Loading queue...</div>
+    <table *ngIf="!loading" class="w-full text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">#</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Patient</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Chief Complaint</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Status</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Doctor</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Indicators</th>
+          <th class="py-3 px-4"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let v of visits; let i = index" class="border-t border-gray-100 hover:bg-gray-50">
+          <td class="py-3 px-4 text-gray-400">{{ i + 1 }}</td>
+          <td class="py-3 px-4 font-medium">
+            <a [routerLink]="['/app/patients', v.patientId]" class="text-blue-600 hover:underline">{{ v.patientName }}</a>
+          </td>
+          <td class="py-3 px-4 text-gray-500">{{ v.chiefComplaint || '—' }}</td>
+          <td class="py-3 px-4"><span [class]="getStatusClass(v.status)">{{ v.status }}</span></td>
+          <td class="py-3 px-4 text-gray-500">{{ v.doctorName || '—' }}</td>
+          <td class="py-3 px-4">
+            <div class="flex gap-1">
+              <span *ngIf="v.hasVitals" title="Vitals recorded" class="text-green-500 text-xs">💓</span>
+              <span *ngIf="v.hasHistory" title="History recorded" class="text-purple-500 text-xs">📋</span>
+              <span *ngIf="v.hasLabRequests" title="Lab requests" class="text-orange-500 text-xs">🔬</span>
+              <span *ngIf="v.hasBill" title="Bill created" class="text-pink-500 text-xs">💰</span>
+            </div>
+          </td>
+          <td class="py-3 px-4 text-right">
+            <a *ngIf="hasRole('Admin','Doctor')" [routerLink]="['/app/visits', v.visitId]" class="text-blue-600 hover:text-blue-800 text-xs font-medium mr-2">View</a>
+            <a *ngIf="hasRole('Admin','Nurse')" [routerLink]="['/app/vitals', v.visitId]" class="text-green-600 hover:text-green-800 text-xs font-medium">Vitals</a>
+          </td>
+        </tr>
+        <tr *ngIf="visits.length === 0">
+          <td colspan="7" class="py-12 text-center text-gray-400">No visits for today.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- New Visit Modal -->
+<div *ngIf="showNewVisit" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 m-4">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-semibold text-lg">New Visit</h3>
+      <button (click)="showNewVisit = false" class="text-gray-400 hover:text-gray-600 text-xl">×</button>
+    </div>
+    <form [formGroup]="visitForm" (ngSubmit)="createVisit()" class="space-y-4">
+      <div>
+        <label class="form-label">Search Patient *</label>
+        <input type="text" [(ngModel)]="patientSearch" [ngModelOptions]="{standalone: true}"
+               (ngModelChange)="searchPatients()" class="form-input" placeholder="Type patient name...">
+        <div *ngIf="patientSearchResults.length > 0" class="mt-1 border border-gray-200 rounded-lg shadow-sm bg-white max-h-40 overflow-y-auto">
+          <button type="button" *ngFor="let p of patientSearchResults"
+                  (click)="selectPatient(p)" class="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm">
+            {{ p.fullName }} · {{ p.age }} y/o · {{ p.contactNumber }}
+          </button>
+        </div>
+        <p *ngIf="selectedPatient" class="mt-1 text-sm text-green-600 font-medium">✓ {{ selectedPatient.fullName }}</p>
+      </div>
+      <div>
+        <label class="form-label">Chief Complaint</label>
+        <input type="text" formControlName="chiefComplaint" class="form-input" placeholder="Patient's main complaint">
+      </div>
+      <div *ngIf="formError" class="text-red-600 text-sm">{{ formError }}</div>
+      <div class="flex gap-3">
+        <button type="submit" [disabled]="saving || !selectedPatient" class="btn-primary flex-1">{{ saving ? 'Creating...' : 'Create Visit' }}</button>
+        <button type="button" (click)="showNewVisit = false" class="btn-secondary flex-1">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

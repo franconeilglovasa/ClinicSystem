@@ -1,0 +1,78 @@
+<div class="space-y-4" *ngIf="visit">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <a routerLink="/app/queue" class="text-blue-600 hover:underline text-sm">← Queue</a>
+      <h2 class="font-semibold text-gray-800">Visit: {{ visit.patientName }}</h2>
+      <span [class]="getStatusClass(visit.status)">{{ visit.status }}</span>
+    </div>
+    <!-- Status Update -->
+    <div *ngIf="hasRole('Admin','Doctor','Nurse')" class="flex gap-2">
+      <select [(ngModel)]="newStatus" class="form-input text-sm py-1 w-48">
+        <option value="Waiting">Waiting</option>
+        <option value="WithNurse">With Nurse</option>
+        <option value="WithDoctor">With Doctor</option>
+        <option value="ForLaboratory">For Laboratory</option>
+        <option value="ForBilling">For Billing</option>
+        <option value="Completed">Completed</option>
+      </select>
+      <button (click)="updateStatus()" class="btn-secondary text-sm">Update Status</button>
+    </div>
+  </div>
+
+  <!-- Patient Info strip -->
+  <div class="card py-3">
+    <div class="flex gap-6 text-sm text-gray-600 flex-wrap">
+      <span><strong>Patient:</strong> <a [routerLink]="['/app/patients', visit.patientId]" class="text-blue-600 hover:underline">{{ visit.patientName }}</a></span>
+      <span><strong>Date:</strong> {{ visit.visitDate | date:'MMM d, yyyy' }}</span>
+      <span *ngIf="visit.nurseName"><strong>Nurse:</strong> {{ visit.nurseName }}</span>
+      <span *ngIf="visit.doctorName"><strong>Doctor:</strong> {{ visit.doctorName }}</span>
+      <span *ngIf="visit.chiefComplaint"><strong>CC:</strong> {{ visit.chiefComplaint }}</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="border-b border-gray-200">
+    <nav class="flex gap-1">
+      <button *ngFor="let t of tabs" (click)="activeTab = t.id"
+              [class]="activeTab === t.id ? 'px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600' : 'px-4 py-2 text-sm text-gray-500 hover:text-gray-700'">
+        {{ t.label }}
+      </button>
+    </nav>
+  </div>
+
+  <!-- Tab: Vitals -->
+  <div *ngIf="activeTab === 'vitals'">
+    <app-vitals-view [visitId]="visit.visitId" [patientId]="visit.patientId"></app-vitals-view>
+  </div>
+
+  <!-- Tab: History -->
+  <div *ngIf="activeTab === 'history'">
+    <app-history-form [visitId]="visit.visitId" [patientId]="visit.patientId"></app-history-form>
+  </div>
+
+  <!-- Tab: Prescriptions -->
+  <div *ngIf="activeTab === 'prescriptions'">
+    <app-prescriptions [visitId]="visit.visitId" [patientId]="visit.patientId"></app-prescriptions>
+  </div>
+
+  <!-- Tab: Lab Results -->
+  <div *ngIf="activeTab === 'lab'">
+    <app-lab-view [visitId]="visit.visitId" [patientId]="visit.patientId"></app-lab-view>
+  </div>
+
+  <!-- Tab: AI Suggestions -->
+  <div *ngIf="activeTab === 'ai'" class="no-print">
+    <app-ai-suggestions [visitId]="visit.visitId"></app-ai-suggestions>
+  </div>
+
+  <!-- Tab: Billing -->
+  <div *ngIf="activeTab === 'billing'">
+    <div class="card">
+      <h3 class="font-semibold text-gray-800 mb-2">Billing</h3>
+      <p class="text-sm text-gray-600 mb-4">Manage consultation, laboratory, and medication charges for this visit.</p>
+      <a [routerLink]="['/app/billing', visit.visitId]" class="btn-primary text-sm">Open Bill Management</a>
+    </div>
+  </div>
+</div>
+<div *ngIf="loading" class="flex items-center justify-center py-12 text-gray-400">Loading visit...</div>

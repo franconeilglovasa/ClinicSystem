@@ -1,0 +1,75 @@
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h3 class="font-semibold text-gray-800">Laboratory Requests & Results</h3>
+    <button *ngIf="hasRole('Admin','Doctor')" (click)="showRequestForm = !showRequestForm" class="btn-primary text-sm">+ New Request</button>
+  </div>
+
+  <!-- Create Lab Request -->
+  <div *ngIf="showRequestForm" class="card no-print">
+    <form [formGroup]="requestForm" (ngSubmit)="createRequest()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="form-label">Test Type *</label>
+        <input type="text" formControlName="testType" class="form-input" placeholder="Imaging / Hematology / Chemistry">
+      </div>
+      <div>
+        <label class="form-label">Test Name *</label>
+        <input type="text" formControlName="testName" class="form-input" placeholder="CBC / Chest X-ray">
+      </div>
+      <div class="md:col-span-2">
+        <label class="form-label">Notes</label>
+        <textarea formControlName="notes" rows="2" class="form-input"></textarea>
+      </div>
+      <div class="md:col-span-2 flex gap-3">
+        <button type="submit" [disabled]="savingRequest" class="btn-primary">{{ savingRequest ? 'Creating...' : 'Create Request' }}</button>
+        <button type="button" (click)="showRequestForm = false" class="btn-secondary">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Request + Result cards -->
+  <div *ngIf="requests.length === 0" class="card text-center py-8 text-gray-400">No lab requests yet.</div>
+
+  <div *ngFor="let req of requests" class="card">
+    <div class="flex items-start justify-between">
+      <div>
+        <p class="font-semibold text-gray-900">{{ req.testName }} <span class="text-sm text-gray-500">({{ req.testType }})</span></p>
+        <p class="text-sm text-gray-500">Status: <span class="badge-pending">{{ req.status }}</span> · Requested {{ req.requestedAt | date:'MMM d, y h:mm a' }}</p>
+        <p *ngIf="req.notes" class="text-sm text-gray-600 mt-1">{{ req.notes }}</p>
+      </div>
+    </div>
+
+    <div *ngIf="req.result" class="mt-4 border-t pt-4 space-y-3">
+      <div>
+        <p class="text-sm"><strong>Findings:</strong> {{ req.result.findings }}</p>
+        <p *ngIf="req.result.notes" class="text-sm text-gray-600 mt-1"><strong>Notes:</strong> {{ req.result.notes }}</p>
+        <p class="text-xs text-gray-400 mt-1">Result Date: {{ req.result.resultDate | date:'MMM d, y h:mm a' }}</p>
+      </div>
+
+      <div *ngIf="req.result.attachments?.length">
+        <p class="text-sm font-medium mb-2">Attachments</p>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <button *ngFor="let a of req.result.attachments"
+                  (click)="previewAttachment(req.result!.resultId, a)"
+                  class="p-2 border border-gray-200 rounded hover:bg-gray-50 text-left text-xs">
+            <p class="font-medium truncate">{{ a.fileName }}</p>
+            <p class="text-gray-400">{{ formatFileSize(a.fileSize) }}</p>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!req.result" class="mt-4 text-sm text-gray-400">Result pending...</div>
+  </div>
+
+  <!-- Simple attachment preview modal -->
+  <div *ngIf="previewUrl" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50" (click)="closePreview()">
+    <div class="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-auto p-2" (click)="$event.stopPropagation()">
+      <div class="flex justify-between items-center px-2 py-1">
+        <p class="text-sm font-medium">{{ previewFileName }}</p>
+        <button (click)="closePreview()" class="text-gray-500 hover:text-gray-700 text-xl">×</button>
+      </div>
+      <img *ngIf="isImagePreview" [src]="previewUrl" alt="Attachment preview" class="max-w-full h-auto rounded">
+      <iframe *ngIf="!isImagePreview" [src]="previewUrl" class="w-[80vw] h-[70vh] border rounded"></iframe>
+    </div>
+  </div>
+</div>

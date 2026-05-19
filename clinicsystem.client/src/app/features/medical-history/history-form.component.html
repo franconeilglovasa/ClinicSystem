@@ -1,0 +1,85 @@
+<div class="space-y-4">
+  <div class="card">
+    <h3 class="font-semibold text-gray-800 mb-4">Medical History</h3>
+    <form [formGroup]="historyForm" (ngSubmit)="save()" class="space-y-4" *ngIf="hasRole('Admin','Doctor'); else readonlyView">
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="form-label">Chief Complaint</label>
+          <input type="text" formControlName="chiefComplaint" class="form-input">
+        </div>
+        <div>
+          <label class="form-label">Allergies</label>
+          <input type="text" formControlName="allergies" class="form-input" placeholder="NKDA or list allergies">
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label">History of Present Illness</label>
+        <textarea formControlName="presentIllness" rows="3" class="form-input"></textarea>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="form-label">Past Medical History</label>
+          <textarea formControlName="pastMedicalHistory" rows="3" class="form-input"></textarea>
+        </div>
+        <div>
+          <label class="form-label">Family History</label>
+          <textarea formControlName="familyHistory" rows="3" class="form-input"></textarea>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="form-label">Social History</label>
+          <textarea formControlName="socialHistory" rows="2" class="form-input"></textarea>
+        </div>
+        <div>
+          <label class="form-label">Current Medications</label>
+          <textarea formControlName="currentMedications" rows="2" class="form-input"></textarea>
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label">Review of Systems</label>
+        <textarea formControlName="reviewOfSystems" rows="2" class="form-input"></textarea>
+      </div>
+
+      <div>
+        <label class="form-label">Physical Examination</label>
+        <textarea formControlName="physicalExamination" rows="4" class="form-input"></textarea>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="form-label">Assessment / Impression</label>
+          <textarea formControlName="assessment" rows="3" class="form-input"></textarea>
+        </div>
+        <div>
+          <label class="form-label">Plan</label>
+          <textarea formControlName="plan" rows="3" class="form-input"></textarea>
+        </div>
+      </div>
+
+      <div *ngIf="error" class="text-red-600 text-sm">{{ error }}</div>
+      <div class="flex items-center gap-3">
+        <button type="submit" [disabled]="saving" class="btn-primary">{{ saving ? 'Saving...' : 'Save History' }}</button>
+        <p *ngIf="saved" class="text-green-600 text-sm">✓ Saved</p>
+      </div>
+    </form>
+
+    <ng-template #readonlyView>
+      <div *ngIf="history" class="space-y-3 text-sm">
+        <div *ngIf="history.chiefComplaint"><strong>CC:</strong> {{ history.chiefComplaint }}</div>
+        <div *ngIf="history.presentIllness"><strong>HPI:</strong> {{ history.presentIllness }}</div>
+        <div *ngIf="history.pastMedicalHistory"><strong>PMH:</strong> {{ history.pastMedicalHistory }}</div>
+        <div *ngIf="history.allergies"><strong>Allergies:</strong> {{ history.allergies }}</div>
+        <div *ngIf="history.physicalExamination"><strong>PE:</strong> {{ history.physicalExamination }}</div>
+        <div *ngIf="history.assessment"><strong>Assessment:</strong> {{ history.assessment }}</div>
+        <div *ngIf="history.plan"><strong>Plan:</strong> {{ history.plan }}</div>
+      </div>
+      <div *ngIf="!history" class="text-gray-400 text-sm text-center py-6">No history recorded yet.</div>
+    </ng-template>
+  </div>
+</div>

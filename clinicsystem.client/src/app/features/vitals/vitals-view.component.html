@@ -1,0 +1,42 @@
+<div class="space-y-4">
+  <div *ngIf="vitals" class="card">
+    <h3 class="font-semibold text-gray-800 mb-4">Recorded Vitals</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="text-center p-3 bg-blue-50 rounded-lg">
+        <p class="text-2xl font-bold text-blue-700">{{ vitals.bloodPressure || '—' }}</p>
+        <p class="text-xs text-gray-500 mt-1">Blood Pressure (mmHg)</p>
+      </div>
+      <div class="text-center p-3 bg-red-50 rounded-lg">
+        <p class="text-2xl font-bold text-red-600">{{ vitals.heartRate || '—' }}</p>
+        <p class="text-xs text-gray-500 mt-1">Heart Rate (bpm)</p>
+      </div>
+      <div class="text-center p-3 bg-orange-50 rounded-lg">
+        <p class="text-2xl font-bold text-orange-600">{{ vitals.temperature || '—' }}</p>
+        <p class="text-xs text-gray-500 mt-1">Temperature (°C)</p>
+      </div>
+      <div class="text-center p-3 bg-cyan-50 rounded-lg">
+        <p class="text-2xl font-bold text-cyan-700">{{ vitals.oxygenSaturation || '—' }}%</p>
+        <p class="text-xs text-gray-500 mt-1">SpO₂</p>
+      </div>
+      <div class="text-center p-3 bg-gray-50 rounded-lg">
+        <p class="text-2xl font-bold text-gray-700">{{ vitals.weight || '—' }}</p>
+        <p class="text-xs text-gray-500 mt-1">Weight (kg)</p>
+      </div>
+      <div class="text-center p-3 bg-gray-50 rounded-lg">
+        <p class="text-2xl font-bold text-gray-700">{{ vitals.height || '—' }}</p>
+        <p class="text-xs text-gray-500 mt-1">Height (cm)</p>
+      </div>
+      <div class="text-center p-3 bg-green-50 rounded-lg">
+        <p class="text-2xl font-bold text-green-700">{{ vitals.bmi | number:'1.1-1' }}</p>
+        <p class="text-xs text-gray-500 mt-1">BMI</p>
+      </div>
+      <div class="text-center p-3 bg-purple-50 rounded-lg">
+        <p class="text-2xl font-bold text-purple-700">{{ vitals.respiratoryRate || '—' }}</p>
+        <p class="text-xs text-gray-500 mt-1">RR (breaths/min)</p>
+      </div>
+    </div>
+    <p *ngIf="vitals.notes" class="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">{{ vitals.notes }}</p>
+    <p class="text-xs text-gray-400 mt-2">Recorded by {{ vitals.recordedByNurseName }} · {{ vitals.recordedAt | date:'MMM d, y h:mm a' }}</p>
+  </div>
+  <div *ngIf="!vitals && !loading" class="card text-center py-8 text-gray-400">No vitals recorded yet.</div>
+</div>

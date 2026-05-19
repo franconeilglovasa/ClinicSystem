@@ -1,0 +1,108 @@
+<div class="space-y-4">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <h2 class="text-lg font-semibold text-gray-800">Patients</h2>
+    <button (click)="showForm = true; editingPatient = null; resetForm()" class="btn-primary">+ New Patient</button>
+  </div>
+
+  <!-- Search -->
+  <div class="card">
+    <input type="text" [(ngModel)]="search" (ngModelChange)="onSearch()" placeholder="Search by name or phone..."
+           class="form-input max-w-md">
+  </div>
+
+  <!-- Table -->
+  <div class="card p-0 overflow-hidden">
+    <div *ngIf="loading" class="text-center py-12 text-gray-400">Loading...</div>
+    <table *ngIf="!loading" class="w-full text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Name</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Age / Gender</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Contact</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Registered</th>
+          <th class="py-3 px-4"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of patients" class="border-t border-gray-100 hover:bg-gray-50">
+          <td class="py-3 px-4">
+            <a [routerLink]="['/app/patients', p.patientId]" class="font-medium text-blue-600 hover:underline">{{ p.fullName }}</a>
+          </td>
+          <td class="py-3 px-4 text-gray-500">{{ p.age }} y/o · {{ p.gender }}</td>
+          <td class="py-3 px-4 text-gray-500">{{ p.contactNumber || '—' }}</td>
+          <td class="py-3 px-4 text-gray-500">{{ p.createdAt | date:'MMM d, y' }}</td>
+          <td class="py-3 px-4 text-right">
+            <button (click)="edit(p)" class="text-blue-600 hover:text-blue-800 text-xs font-medium">Edit</button>
+          </td>
+        </tr>
+        <tr *ngIf="patients.length === 0">
+          <td colspan="5" class="py-12 text-center text-gray-400">No patients found.</td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- Pagination -->
+    <div *ngIf="result" class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <p class="text-sm text-gray-500">{{ result.totalCount }} total · Page {{ result.page }} of {{ result.totalPages }}</p>
+      <div class="flex gap-2">
+        <button (click)="goPage(currentPage - 1)" [disabled]="currentPage <= 1" class="btn-secondary text-xs px-3 py-1">Prev</button>
+        <button (click)="goPage(currentPage + 1)" [disabled]="currentPage >= result.totalPages" class="btn-secondary text-xs px-3 py-1">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Patient Form Modal -->
+<div *ngIf="showForm" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 m-4 max-h-screen overflow-y-auto">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-semibold text-lg">{{ editingPatient ? 'Edit' : 'New' }} Patient</h3>
+      <button (click)="showForm = false" class="text-gray-400 hover:text-gray-600 text-xl">×</button>
+    </div>
+
+    <form [formGroup]="patientForm" (ngSubmit)="save()" class="space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="form-label">First Name *</label>
+          <input type="text" formControlName="firstName" class="form-input">
+        </div>
+        <div>
+          <label class="form-label">Last Name *</label>
+          <input type="text" formControlName="lastName" class="form-input">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="form-label">Date of Birth *</label>
+          <input type="date" formControlName="dateOfBirth" class="form-input">
+        </div>
+        <div>
+          <label class="form-label">Gender *</label>
+          <select formControlName="gender" class="form-input">
+            <option value="">Select...</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">Contact Number</label>
+        <input type="text" formControlName="contactNumber" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Address</label>
+        <input type="text" formControlName="address" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Email</label>
+        <input type="email" formControlName="email" class="form-input">
+      </div>
+      <div *ngIf="formError" class="text-red-600 text-sm">{{ formError }}</div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" [disabled]="saving" class="btn-primary flex-1">{{ saving ? 'Saving...' : 'Save' }}</button>
+        <button type="button" (click)="showForm = false" class="btn-secondary flex-1">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

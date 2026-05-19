@@ -1,0 +1,80 @@
+<div class="flex h-screen bg-gray-50">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-blue-800 text-white flex flex-col no-print">
+    <div class="p-4 border-b border-blue-700">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-lg font-bold">C</div>
+        <div>
+          <p class="font-semibold text-sm">ClinicSystem</p>
+          <p class="text-xs text-blue-300">Medical Center</p>
+        </div>
+      </div>
+    </div>
+
+    <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+      <a routerLink="/app/dashboard" routerLinkActive="bg-blue-700" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+        <span>🏠</span> Dashboard
+      </a>
+      <a routerLink="/app/patients" routerLinkActive="bg-blue-700" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+        <span>👥</span> Patients
+      </a>
+
+      <!-- Nurse + Doctor: Queue -->
+      <ng-container *ngIf="hasRole('Admin','Nurse','Doctor')">
+        <a routerLink="/app/queue" routerLinkActive="bg-blue-700" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+          <span>📋</span> Visit Queue
+        </a>
+      </ng-container>
+
+      <!-- Lab: Lab Queue -->
+      <ng-container *ngIf="hasRole('Admin','Laboratory')">
+        <a routerLink="/app/lab-queue" routerLinkActive="bg-blue-700" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+          <span>🔬</span> Lab Queue
+        </a>
+      </ng-container>
+
+      <!-- Cashier: Billing -->
+      <ng-container *ngIf="hasRole('Admin','Cashier')">
+        <a routerLink="/app/billing" routerLinkActive="bg-blue-700" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+          <span>💰</span> Billing
+        </a>
+      </ng-container>
+
+      <!-- Admin: Users -->
+      <ng-container *ngIf="hasRole('Admin')">
+        <div class="pt-3 pb-1">
+          <p class="text-xs text-blue-400 uppercase tracking-wider px-3">Administration</p>
+        </div>
+        <a routerLink="/app/admin/users" routerLinkActive="bg-blue-700" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+          <span>⚙️</span> User Management
+        </a>
+      </ng-container>
+    </nav>
+
+    <div class="p-3 border-t border-blue-700">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold">
+          {{ userInitial }}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium truncate">{{ currentUser?.fullName }}</p>
+          <p class="text-xs text-blue-300">{{ currentUser?.role }}</p>
+        </div>
+      </div>
+      <button (click)="logout()" class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm text-blue-200 hover:text-white">
+        🚪 Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between no-print">
+      <h1 class="text-lg font-semibold text-gray-800">{{ pageTitle }}</h1>
+      <span class="text-sm text-gray-500">{{ today | date:'MMMM d, yyyy' }}</span>
+    </header>
+    <main class="flex-1 overflow-y-auto p-6">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

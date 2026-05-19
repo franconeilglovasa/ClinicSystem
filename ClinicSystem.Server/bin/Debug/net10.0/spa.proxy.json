@@ -1,0 +1,10 @@
+{
+"SpaProxyServer": {
+"ServerUrl": "https://localhost:56699",
+"RedirectUrl": "",
+"LaunchCommand": "npm start",
+"WorkingDirectory": "/Users/franconeilglovasa/Project/ClinicSystem/ClinicSystem.Server/../clinicsystem.client",
+"MaxTimeoutInSeconds": "120",
+"KeepRunning": "false"
+}
+}

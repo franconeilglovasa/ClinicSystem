@@ -1,0 +1,50 @@
+<div class="space-y-4" *ngIf="!loading; else loadingTpl">
+  <!-- Header -->
+  <div class="flex items-center gap-3">
+    <a routerLink="/app/patients" class="text-blue-600 hover:underline text-sm">← Patients</a>
+  </div>
+
+  <div *ngIf="patient" class="space-y-4">
+    <!-- Patient Header Card -->
+    <div class="card">
+      <div class="flex items-start justify-between">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">{{ patient.fullName }}</h2>
+          <p class="text-gray-500 mt-1">{{ patient.age }} years old · {{ patient.gender }} · DOB: {{ patient.dateOfBirth | date:'MMM d, yyyy' }}</p>
+          <div class="flex gap-4 mt-2 text-sm text-gray-500">
+            <span *ngIf="patient.contactNumber">📞 {{ patient.contactNumber }}</span>
+            <span *ngIf="patient.email">✉️ {{ patient.email }}</span>
+            <span *ngIf="patient.address">📍 {{ patient.address }}</span>
+          </div>
+        </div>
+        <a [routerLink]="['/app/queue']" [queryParams]="{patientId: patient.patientId}" class="btn-primary text-sm">New Visit</a>
+      </div>
+    </div>
+
+    <!-- Visit History -->
+    <div class="card">
+      <h3 class="font-semibold text-gray-800 mb-4">Visit History</h3>
+      <div *ngIf="visits.length === 0" class="text-gray-400 text-sm py-4 text-center">No visits yet.</div>
+      <div class="space-y-2">
+        <div *ngFor="let v of visits"
+             class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+             (click)="goToVisit(v.visitId)">
+          <div>
+            <p class="text-sm font-medium text-gray-800">{{ v.visitDate | date:'MMM d, yyyy' }}</p>
+            <p class="text-xs text-gray-500">{{ v.chiefComplaint || 'No chief complaint' }}</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-gray-500">{{ v.doctorName || 'No doctor' }}</span>
+            <span [class]="getStatusClass(v.status)">{{ v.status }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="flex items-center justify-center py-12">
+    <div class="text-gray-400">Loading patient data...</div>
+  </div>
+</ng-template>

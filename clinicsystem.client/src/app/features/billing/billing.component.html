@@ -1,0 +1,38 @@
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h2 class="text-lg font-semibold text-gray-800">Billing Queue</h2>
+    <button (click)="load()" class="btn-secondary text-sm">Refresh</button>
+  </div>
+
+  <div class="card p-0 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Visit Date</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Patient</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Total</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Paid</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Balance</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Status</th>
+          <th class="py-3 px-4"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let b of bills" class="border-t border-gray-100 hover:bg-gray-50">
+          <td class="py-3 px-4 text-gray-500">{{ b.createdAt | date:'MMM d, y' }}</td>
+          <td class="py-3 px-4 font-medium">{{ b.patientName }}</td>
+          <td class="py-3 px-4">{{ b.totalAmount | currency:'PHP ':'symbol':'1.2-2' }}</td>
+          <td class="py-3 px-4">{{ b.paidAmount | currency:'PHP ':'symbol':'1.2-2' }}</td>
+          <td class="py-3 px-4 font-medium text-red-600">{{ b.balance | currency:'PHP ':'symbol':'1.2-2' }}</td>
+          <td class="py-3 px-4"><span [class]="b.status === 'Paid' ? 'badge-paid' : 'badge-pending'">{{ b.status }}</span></td>
+          <td class="py-3 px-4 text-right">
+            <a [routerLink]="['/app/billing', b.visitId]" class="text-blue-600 hover:text-blue-800 text-xs font-medium">Manage</a>
+          </td>
+        </tr>
+        <tr *ngIf="bills.length === 0">
+          <td colspan="7" class="py-12 text-center text-gray-400">No bills yet.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

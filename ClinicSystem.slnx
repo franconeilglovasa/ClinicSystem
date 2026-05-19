@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="clinicsystem.client/clinicsystem.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="ClinicSystem.Server/ClinicSystem.Server.csproj" />
+</Solution>

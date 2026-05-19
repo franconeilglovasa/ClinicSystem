@@ -1,0 +1,11 @@
+@ClinicSystem.Server_HostAddress = https://localhost:7050
+
+POST {{ClinicSystem.Server_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+	"email": "admin@clinicsystem.com",
+	"password": "Admin@123"
+}
+
+###

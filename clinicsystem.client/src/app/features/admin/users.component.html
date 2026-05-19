@@ -1,0 +1,75 @@
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h2 class="text-lg font-semibold text-gray-800">User Management</h2>
+    <button (click)="showForm = !showForm" class="btn-primary text-sm">+ New User</button>
+  </div>
+
+  <div *ngIf="showForm" class="card">
+    <h3 class="font-medium text-gray-800 mb-3">Create User</h3>
+    <form [formGroup]="userForm" (ngSubmit)="createUser()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="form-label">Full Name *</label>
+        <input type="text" formControlName="fullName" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Email *</label>
+        <input type="email" formControlName="email" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Password *</label>
+        <input type="password" formControlName="password" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Role *</label>
+        <select formControlName="role" class="form-input">
+          <option>Admin</option><option>Doctor</option><option>Nurse</option><option>Laboratory</option><option>Cashier</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Specialty</label>
+        <input type="text" formControlName="specialty" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">License Number</label>
+        <input type="text" formControlName="licenseNumber" class="form-input">
+      </div>
+      <div class="md:col-span-2 flex gap-3">
+        <button type="submit" [disabled]="saving" class="btn-primary">{{ saving ? 'Creating...' : 'Create User' }}</button>
+        <button type="button" (click)="showForm = false" class="btn-secondary">Cancel</button>
+      </div>
+      <p *ngIf="error" class="text-red-600 text-sm md:col-span-2">{{ error }}</p>
+    </form>
+  </div>
+
+  <div class="card p-0 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Name</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Email</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Role</th>
+          <th class="text-left py-3 px-4 text-gray-500 font-medium">Status</th>
+          <th class="py-3 px-4"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of users" class="border-t border-gray-100 hover:bg-gray-50">
+          <td class="py-3 px-4 font-medium">{{ u.fullName }}</td>
+          <td class="py-3 px-4 text-gray-500">{{ u.email }}</td>
+          <td class="py-3 px-4">{{ u.role }}</td>
+          <td class="py-3 px-4">
+            <span [class]="u.isActive ? 'text-green-600 text-xs font-medium' : 'text-red-600 text-xs font-medium'">
+              {{ u.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-right">
+            <button (click)="toggleActive(u.id)" class="text-xs"
+                    [class]="u.isActive ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'">
+              {{ u.isActive ? 'Deactivate' : 'Activate' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

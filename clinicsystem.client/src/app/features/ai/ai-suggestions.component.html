@@ -1,0 +1,26 @@
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h3 class="font-semibold text-gray-800">AI Clinical Suggestions</h3>
+    <button *ngIf="hasRole('Admin','Doctor')" (click)="generate()" [disabled]="loading" class="btn-primary text-sm">
+      {{ loading ? 'Generating...' : 'Get AI Suggestions' }}
+    </button>
+  </div>
+
+  <div class="card no-print" *ngIf="hasRole('Admin','Doctor')">
+    <label class="form-label">Additional Context for AI</label>
+    <textarea [(ngModel)]="additionalContext" rows="3" class="form-input" placeholder="Optional context, e.g., suspected condition, medication constraints..."></textarea>
+    <p class="text-xs text-gray-500 mt-2">Model: Ollama llama3 · Suggestions are advisory only and should be validated clinically.</p>
+  </div>
+
+  <div *ngIf="suggestions.length === 0 && !loading" class="card text-center py-8 text-gray-400">
+    No AI suggestions yet.
+  </div>
+
+  <div *ngFor="let s of suggestions" class="card">
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-sm font-medium text-gray-800">Generated {{ s.generatedAt | date:'MMM d, y h:mm a' }}</p>
+      <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">{{ s.model || 'llama3' }}</span>
+    </div>
+    <pre class="whitespace-pre-wrap text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">{{ s.response }}</pre>
+  </div>
+</div>
