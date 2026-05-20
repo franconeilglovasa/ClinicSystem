@@ -155,3 +155,4 @@
 /Users/franconeilglovasa/Project/ClinicSystem/ClinicSystem.Server/obj/Debug/net10.0/ClinicSystem.Server.pdb
 /Users/franconeilglovasa/Project/ClinicSystem/ClinicSystem.Server/obj/Debug/net10.0/ClinicSystem.Server.genruntimeconfig.cache
 /Users/franconeilglovasa/Project/ClinicSystem/ClinicSystem.Server/obj/Debug/net10.0/ref/ClinicSystem.Server.dll
+/Users/franconeilglovasa/Project/ClinicSystem/ClinicSystem.Server/obj/Debug/net10.0/ClinicSystem.Server.sourcelink.json

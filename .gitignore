@@ -1,3 +1,18 @@
 bin/
 obj/
 
+ClinicSystem.Server/clinicsystem.db-shm
+ClinicSystem.Server/clinicsystem.db-wal
+ClinicSystem.Server/bin/Debug/net10.0/ClinicSystem.Server.dll
+ClinicSystem.Server/bin/Debug/net10.0/ClinicSystem.Server.pdb
+ClinicSystem.Server/obj/Debug/net10.0/ClinicSystem.Server.AssemblyInfo.cs
+ClinicSystem.Server/obj/Debug/net10.0/ClinicSystem.Server.AssemblyInfoInputs.cache
+ClinicSystem.Server/obj/Debug/net10.0/ClinicSystem.Server.csproj.FileListAbsolute.txt
+ClinicSystem.Server/obj/Debug/net10.0/ClinicSystem.Server.dll
+ClinicSystem.Server/obj/Debug/net10.0/ClinicSystem.Server.pdb
+ClinicSystem.Server/obj/Debug/net10.0/rjsmcshtml.dswa.cache.json
+ClinicSystem.Server/obj/Debug/net10.0/rjsmrazor.dswa.cache.json
+ClinicSystem.Server/obj/Debug/net10.0/staticwebassets.build.json
+ClinicSystem.Server/obj/Debug/net10.0/staticwebassets.build.json.cache
+ClinicSystem.Server/obj/Debug/net10.0/ref/ClinicSystem.Server.dll
+ClinicSystem.Server/obj/Debug/net10.0/refint/ClinicSystem.Server.dll
