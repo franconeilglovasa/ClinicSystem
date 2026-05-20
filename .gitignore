@@ -1,6 +1,14 @@
 bin/
 obj/
 
+# JetBrains Rider / IntelliJ IDEA
+.idea/
+*.sln.iml
+*.iml
+.rider/
+.vs/
+*.user
+
 ClinicSystem.Server/clinicsystem.db-shm
 ClinicSystem.Server/clinicsystem.db-wal
 ClinicSystem.Server/bin/Debug/net10.0/ClinicSystem.Server.dll
@@ -16,3 +24,4 @@ ClinicSystem.Server/obj/Debug/net10.0/staticwebassets.build.json
 ClinicSystem.Server/obj/Debug/net10.0/staticwebassets.build.json.cache
 ClinicSystem.Server/obj/Debug/net10.0/ref/ClinicSystem.Server.dll
 ClinicSystem.Server/obj/Debug/net10.0/refint/ClinicSystem.Server.dll
+.idea/.idea.ClinicSystem/.idea/vcs.xml
