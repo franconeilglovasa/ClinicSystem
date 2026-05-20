@@ -20,6 +20,7 @@ export class LabViewComponent implements OnInit {
   previewUrl: SafeResourceUrl | null = null;
   previewFileName = '';
   isImagePreview = true;
+  private objectUrl: string | null = null;
 
   requestForm = this.fb.group({
     testType: ['', Validators.required],
@@ -58,16 +59,43 @@ export class LabViewComponent implements OnInit {
 
   previewAttachment(resultId: string, attachment: LabAttachment): void {
     this.api.getLabAttachmentBlob(resultId, attachment.attachmentId).subscribe(blob => {
+      if (this.objectUrl) {
+        URL.revokeObjectURL(this.objectUrl);
+      }
+
       const objectUrl = URL.createObjectURL(blob);
+      this.objectUrl = objectUrl;
       this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
       this.previewFileName = attachment.fileName;
-      this.isImagePreview = attachment.fileType?.startsWith('image/');
+      this.isImagePreview = this.isImageAttachment(attachment, blob.type);
+    });
+  }
+
+  openAttachmentInNewTab(resultId: string, attachment: LabAttachment): void {
+    this.api.getLabAttachmentBlob(resultId, attachment.attachmentId).subscribe(blob => {
+      const objectUrl = URL.createObjectURL(blob);
+      window.open(objectUrl, '_blank', 'noopener,noreferrer');
+
+      // Revoke later to give the new tab enough time to load the blob URL.
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
     });
   }
 
   closePreview(): void {
+    if (this.objectUrl) {
+      URL.revokeObjectURL(this.objectUrl);
+      this.objectUrl = null;
+    }
+
     this.previewUrl = null;
     this.previewFileName = '';
+  }
+
+  private isImageAttachment(attachment: LabAttachment, mimeType?: string): boolean {
+    if (mimeType?.startsWith('image/')) return true;
+
+    const fileType = (attachment.fileType ?? '').toLowerCase();
+    return fileType === '.jpg' || fileType === '.jpeg' || fileType === '.png' || fileType === '.gif' || fileType === '.webp';
   }
 
   formatFileSize(bytes: number): string {

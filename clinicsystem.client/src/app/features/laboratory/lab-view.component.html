@@ -45,15 +45,27 @@
         <p class="text-xs text-gray-400 mt-1">Result Date: {{ req.result.resultDate | date:'MMM d, y h:mm a' }}</p>
       </div>
 
-      <div *ngIf="req.result.attachments?.length">
+      <div *ngIf="req.result.attachments.length">
         <p class="text-sm font-medium mb-2">Attachments</p>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-          <button *ngFor="let a of req.result.attachments"
-                  (click)="previewAttachment(req.result!.resultId, a)"
-                  class="p-2 border border-gray-200 rounded hover:bg-gray-50 text-left text-xs">
+          <div *ngFor="let a of req.result.attachments" class="p-2 border border-gray-200 rounded text-xs">
             <p class="font-medium truncate">{{ a.fileName }}</p>
-            <p class="text-gray-400">{{ formatFileSize(a.fileSize) }}</p>
-          </button>
+            <p class="text-gray-400 mb-2">{{ formatFileSize(a.fileSize) }}</p>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                (click)="previewAttachment(req.result!.resultId, a)"
+                class="btn-secondary text-[11px] px-2 py-1">
+                Preview
+              </button>
+              <button
+                type="button"
+                (click)="openAttachmentInNewTab(req.result!.resultId, a)"
+                class="btn-primary text-[11px] px-2 py-1">
+                Open
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

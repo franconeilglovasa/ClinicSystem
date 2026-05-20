@@ -98,12 +98,24 @@ namespace ClinicSystem.Server.Controllers
             var techId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                          ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
 
+            if (!string.IsNullOrWhiteSpace(techId))
+            {
+                var userExists = await _db.Users.AnyAsync(u => u.Id == techId);
+                if (!userExists)
+                {
+                    return Unauthorized(new { message = "Session is out of date. Please sign in again." });
+                }
+            }
+
+            Guid resultId;
+
             if (labRequest.Result != null)
             {
                 labRequest.Result.Findings = request.Findings;
                 labRequest.Result.Notes = request.Notes;
                 labRequest.Result.ResultDate = request.ResultDate.ToUniversalTime();
                 labRequest.Result.LabTechId = techId;
+                resultId = labRequest.Result.ResultId;
             }
             else
             {
@@ -116,11 +128,13 @@ namespace ClinicSystem.Server.Controllers
                     ResultDate = request.ResultDate.ToUniversalTime()
                 };
                 _db.LabResults.Add(result);
-                labRequest.Status = LabRequestStatus.Completed;
+                resultId = result.ResultId;
             }
 
+            labRequest.Status = LabRequestStatus.Completed;
+
             await _db.SaveChangesAsync();
-            return Ok();
+            return Ok(new { resultId });
         }
 
         [HttpPost("api/lab-results/{resultId}/attachments")]

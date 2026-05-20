@@ -35,4 +35,11 @@ export class AiSuggestionsComponent implements OnInit {
       error: () => this.loading = false
     });
   }
+
+  delete(suggestionId: string): void {
+    if (!confirm('Delete this AI suggestion?')) return;
+    this.api.deleteAISuggestion(this.visitId, suggestionId).subscribe(() => {
+      this.suggestions = this.suggestions.filter(s => s.suggestionId !== suggestionId);
+    });
+  }
 }

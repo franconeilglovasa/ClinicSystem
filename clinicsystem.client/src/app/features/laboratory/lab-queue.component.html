@@ -1,7 +1,10 @@
 <div class="space-y-4">
   <div class="flex items-center justify-between">
     <h2 class="text-lg font-semibold text-gray-800">Laboratory Queue</h2>
-    <button (click)="load()" class="btn-secondary text-sm">Refresh</button>
+    <div class="flex gap-2">
+      <button *ngIf="hasRole('Admin','Doctor')" (click)="openNewRequestModal()" class="btn-primary text-sm">+ New Lab Request</button>
+      <button (click)="load()" class="btn-secondary text-sm">Refresh</button>
+    </div>
   </div>
 
   <div class="card p-0 overflow-hidden">
@@ -57,14 +60,21 @@
           <input type="datetime-local" formControlName="resultDate" class="form-input">
         </div>
 
-        <div *ngIf="savedResultId" class="border-t pt-4">
-          <label class="form-label">Attachments (X-ray / Ultrasound / Docs)</label>
+        <div class="border-t pt-4">
+          <label class="form-label">Attachments (X-ray / Ultrasound / PDF / DICOM)</label>
           <input type="file" (change)="onFilesSelected($event)" multiple accept=".jpg,.jpeg,.png,.pdf,.dcm" class="form-input">
-          <div class="mt-2 flex flex-wrap gap-2">
-            <span *ngFor="let f of selectedFiles" class="text-xs bg-gray-100 px-2 py-1 rounded">{{ f.name }}</span>
+          <div *ngIf="selectedFiles.length > 0" class="mt-2 flex flex-wrap gap-2">
+            <span *ngFor="let f of selectedFiles; let i = index"
+              class="flex items-center gap-1 text-xs bg-gray-100 px-2 py-1 rounded">
+              {{ f.name }}
+              <button type="button" (click)="removeFile(i)" class="text-red-400 hover:text-red-600 ml-1">×</button>
+            </span>
           </div>
-          <button type="button" *ngIf="selectedFiles.length > 0" (click)="uploadFiles()" [disabled]="uploading" class="btn-secondary text-sm mt-2">
-            {{ uploading ? 'Uploading...' : 'Upload Files' }}
+          <div *ngIf="!savedResultId && selectedFiles.length > 0" class="text-xs text-amber-600 mt-1">
+            Save the result first, then files will be uploaded.
+          </div>
+          <button type="button" *ngIf="savedResultId && selectedFiles.length > 0" (click)="uploadFiles()" [disabled]="uploading" class="btn-secondary text-sm mt-2">
+            {{ uploading ? 'Uploading...' : 'Upload ' + selectedFiles.length + ' file(s)' }}
           </button>
           <p *ngIf="uploadMessage" class="text-green-600 text-sm mt-1">{{ uploadMessage }}</p>
         </div>
@@ -73,6 +83,55 @@
         <div class="flex gap-3">
           <button type="submit" [disabled]="saving" class="btn-primary">{{ saving ? 'Saving...' : 'Save Result' }}</button>
           <button type="button" (click)="selectedRequest = null" class="btn-secondary">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- New Lab Request Modal -->
+  <div *ngIf="showNewRequestModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 m-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-lg">New Lab Request</h3>
+        <button (click)="showNewRequestModal = false" class="text-gray-400 hover:text-gray-600 text-xl">×</button>
+      </div>
+      <form [formGroup]="newRequestForm" (ngSubmit)="submitNewRequest()" class="space-y-4">
+        <div>
+          <label class="form-label">Patient *</label>
+          <select formControlName="patientId" (change)="onPatientChange()" class="form-input">
+            <option value="">Select patient...</option>
+            <option *ngFor="let p of patients" [value]="p.patientId">{{ p.fullName }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Visit *</label>
+          <select formControlName="visitId" class="form-input" [attr.disabled]="loadingVisits || patientVisits.length === 0 ? true : null">
+            <option value="">{{ loadingVisits ? 'Loading...' : (patientVisits.length === 0 ? 'Select a patient first' : 'Select visit...') }}</option>
+            <option *ngFor="let v of patientVisits" [value]="v.visitId">
+              {{ v.visitDate | date:'MMM d, y h:mm a' }} — {{ v.chiefComplaint || v.status }}
+            </option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="form-label">Test Type *</label>
+            <input type="text" formControlName="testType" class="form-input" placeholder="e.g. Hematology, Imaging">
+          </div>
+          <div>
+            <label class="form-label">Test Name *</label>
+            <input type="text" formControlName="testName" class="form-input" placeholder="e.g. CBC, Chest X-ray">
+          </div>
+        </div>
+        <div>
+          <label class="form-label">Notes</label>
+          <textarea formControlName="notes" rows="2" class="form-input" placeholder="Additional instructions..."></textarea>
+        </div>
+        <div *ngIf="newRequestError" class="text-red-600 text-sm">{{ newRequestError }}</div>
+        <div class="flex gap-3">
+          <button type="submit" [disabled]="savingNewRequest || newRequestForm.invalid" class="btn-primary">
+            {{ savingNewRequest ? 'Creating...' : 'Create Request' }}
+          </button>
+          <button type="button" (click)="showNewRequestModal = false" class="btn-secondary">Cancel</button>
         </div>
       </form>
     </div>

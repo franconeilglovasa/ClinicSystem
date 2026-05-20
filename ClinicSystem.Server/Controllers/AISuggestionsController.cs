@@ -163,5 +163,15 @@ namespace ClinicSystem.Server.Controllers
 
             return sb.ToString();
         }
+        [HttpDelete("{suggestionId}")]
+        [Authorize(Roles = "Admin,Doctor")]
+        public async Task<IActionResult> DeleteSuggestion(Guid visitId, Guid suggestionId)
+        {
+            var suggestion = await _db.AISuggestions.FirstOrDefaultAsync(a => a.SuggestionId == suggestionId && a.VisitId == visitId);
+            if (suggestion == null) return NotFound();
+            _db.AISuggestions.Remove(suggestion);
+            await _db.SaveChangesAsync();
+            return NoContent();
+        }
     }
 }

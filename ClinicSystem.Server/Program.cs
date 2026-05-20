@@ -246,7 +246,31 @@ namespace ClinicSystem.Server
                 CreatedAt = now.AddDays(-1)
             };
 
-            db.Patients.AddRange(patient1, patient2, patient3);
+            var patient4 = new Patient
+            {
+                FirstName = "Rosa",
+                LastName = "Mendoza",
+                DateOfBirth = new DateTime(1975, 6, 10),
+                Gender = Gender.Female,
+                ContactNumber = "09181112222",
+                Address = "Taguig City",
+                Email = "rosa.mendoza@example.com",
+                CreatedAt = now.AddHours(-5)
+            };
+
+            var patient5 = new Patient
+            {
+                FirstName = "Carlo",
+                LastName = "Santos",
+                DateOfBirth = new DateTime(1990, 1, 30),
+                Gender = Gender.Male,
+                ContactNumber = "09193334444",
+                Address = "Mandaluyong City",
+                Email = "carlo.santos@example.com",
+                CreatedAt = now.AddHours(-4)
+            };
+
+            db.Patients.AddRange(patient1, patient2, patient3, patient4, patient5);
 
             var visit1 = new Visit
             {
@@ -268,7 +292,29 @@ namespace ClinicSystem.Server
                 CreatedAt = now.AddHours(-2)
             };
 
-            db.Visits.AddRange(visit1, visit2);
+            var visit3 = new Visit
+            {
+                PatientId = patient4.PatientId,
+                VisitDate = now.AddHours(-3),
+                Status = VisitStatus.ForLaboratory,
+                ChiefComplaint = "Abdominal pain and nausea",
+                NurseId = nurse.Id,
+                DoctorId = doctor.Id,
+                CreatedAt = now.AddHours(-3)
+            };
+
+            var visit4 = new Visit
+            {
+                PatientId = patient5.PatientId,
+                VisitDate = now.AddHours(-1),
+                Status = VisitStatus.ForLaboratory,
+                ChiefComplaint = "Chest pain and shortness of breath",
+                NurseId = nurse.Id,
+                DoctorId = doctor.Id,
+                CreatedAt = now.AddHours(-1)
+            };
+
+            db.Visits.AddRange(visit1, visit2, visit3, visit4);
 
             db.Vitals.Add(new Vitals
             {
@@ -364,6 +410,145 @@ namespace ClinicSystem.Server
 
             db.LabRequests.Add(labRequest);
             db.LabResults.Add(labResult);
+
+            // ─── Lab Queue seed data ────────────────────────────────────────────────
+            // visit3: Rosa Mendoza — abdominal pain, 2 pending lab requests
+            db.Vitals.Add(new Vitals
+            {
+                VisitId = visit3.VisitId,
+                BloodPressure = "118/76",
+                HeartRate = 92,
+                Temperature = 37.4m,
+                Weight = 60m,
+                Height = 158m,
+                OxygenSaturation = 98,
+                RespiratoryRate = 17,
+                Notes = "Mild abdominal tenderness on palpation.",
+                RecordedByNurseId = nurse.Id,
+                RecordedAt = now.AddHours(-2.5)
+            });
+            db.PatientHistories.Add(new PatientHistory
+            {
+                VisitId = visit3.VisitId,
+                PatientId = patient4.PatientId,
+                ChiefComplaint = "Abdominal pain and nausea",
+                PresentIllness = "Epigastric pain for 2 days, worsening after meals, associated with nausea.",
+                PastMedicalHistory = "Peptic ulcer disease (2021).",
+                FamilyHistory = "Mother with colon cancer.",
+                SocialHistory = "Non-smoker, no alcohol.",
+                Allergies = "Penicillin (rash).",
+                CurrentMedications = "Omeprazole 20mg OD.",
+                ReviewOfSystems = "No vomiting, no change in bowel habits.",
+                PhysicalExamination = "Epigastric tenderness, no guarding or rigidity.",
+                Assessment = "Likely peptic ulcer relapse vs. acute gastritis. Rule out H. pylori.",
+                Plan = "Order CBC, Liver Function Tests, H. pylori antigen stool test.",
+                DoctorId = doctor.Id,
+                CreatedAt = now.AddHours(-2.5),
+                UpdatedAt = now.AddHours(-2.5)
+            });
+            var labReq2 = new LabRequest
+            {
+                VisitId = visit3.VisitId,
+                PatientId = patient4.PatientId,
+                RequestedByDoctorId = doctor.Id,
+                TestType = "Hematology",
+                TestName = "Complete Blood Count",
+                Notes = "Rule out anemia and infection.",
+                Status = LabRequestStatus.Pending,
+                RequestedAt = now.AddHours(-2.5)
+            };
+            var labReq3 = new LabRequest
+            {
+                VisitId = visit3.VisitId,
+                PatientId = patient4.PatientId,
+                RequestedByDoctorId = doctor.Id,
+                TestType = "Chemistry",
+                TestName = "Liver Function Test",
+                Notes = "Assess hepatic involvement.",
+                Status = LabRequestStatus.InProgress,
+                RequestedAt = now.AddHours(-2.5)
+            };
+            var labReq4 = new LabRequest
+            {
+                VisitId = visit3.VisitId,
+                PatientId = patient4.PatientId,
+                RequestedByDoctorId = doctor.Id,
+                TestType = "Microbiology",
+                TestName = "H. pylori Antigen (Stool)",
+                Notes = "Rule out H. pylori infection.",
+                Status = LabRequestStatus.Pending,
+                RequestedAt = now.AddHours(-2.5)
+            };
+
+            // visit4: Carlo Santos — chest pain, urgent cardiac workup
+            db.Vitals.Add(new Vitals
+            {
+                VisitId = visit4.VisitId,
+                BloodPressure = "148/92",
+                HeartRate = 102,
+                Temperature = 36.9m,
+                Weight = 85m,
+                Height = 175m,
+                OxygenSaturation = 95,
+                RespiratoryRate = 22,
+                Notes = "Diaphoretic, mildly anxious. O2 sat slightly low.",
+                RecordedByNurseId = nurse.Id,
+                RecordedAt = now.AddMinutes(-45)
+            });
+            db.PatientHistories.Add(new PatientHistory
+            {
+                VisitId = visit4.VisitId,
+                PatientId = patient5.PatientId,
+                ChiefComplaint = "Chest pain and shortness of breath",
+                PresentIllness = "Sudden onset chest pain radiating to left arm, onset 1 hour ago, associated with diaphoresis.",
+                PastMedicalHistory = "Hypertension, dyslipidemia.",
+                FamilyHistory = "Father with MI at age 52.",
+                SocialHistory = "Smoker (10 pack-years), sedentary lifestyle.",
+                Allergies = "No known drug allergies.",
+                CurrentMedications = "Amlodipine 5mg OD, Atorvastatin 20mg HS.",
+                ReviewOfSystems = "Positive for dizziness and diaphoresis. Negative for syncope.",
+                PhysicalExamination = "Tachycardic, BP elevated bilaterally. Lung fields clear.",
+                Assessment = "Suspected Acute Coronary Syndrome. Urgent cardiac workup required.",
+                Plan = "STAT ECG, Troponin I, CBC, BMP, Chest X-ray.",
+                DoctorId = doctor.Id,
+                CreatedAt = now.AddMinutes(-45),
+                UpdatedAt = now.AddMinutes(-45)
+            });
+            var labReq5 = new LabRequest
+            {
+                VisitId = visit4.VisitId,
+                PatientId = patient5.PatientId,
+                RequestedByDoctorId = doctor.Id,
+                TestType = "Cardiac",
+                TestName = "Troponin I (STAT)",
+                Notes = "Urgent — rule out NSTEMI.",
+                Status = LabRequestStatus.InProgress,
+                RequestedAt = now.AddMinutes(-40)
+            };
+            var labReq6 = new LabRequest
+            {
+                VisitId = visit4.VisitId,
+                PatientId = patient5.PatientId,
+                RequestedByDoctorId = doctor.Id,
+                TestType = "Hematology",
+                TestName = "Complete Blood Count",
+                Notes = "Baseline CBC.",
+                Status = LabRequestStatus.Pending,
+                RequestedAt = now.AddMinutes(-40)
+            };
+            var labReq7 = new LabRequest
+            {
+                VisitId = visit4.VisitId,
+                PatientId = patient5.PatientId,
+                RequestedByDoctorId = doctor.Id,
+                TestType = "Chemistry",
+                TestName = "Basic Metabolic Panel",
+                Notes = "Electrolytes and renal function.",
+                Status = LabRequestStatus.Pending,
+                RequestedAt = now.AddMinutes(-40)
+            };
+
+            db.LabRequests.AddRange(labReq2, labReq3, labReq4, labReq5, labReq6, labReq7);
 
             var bill = new Bill
             {

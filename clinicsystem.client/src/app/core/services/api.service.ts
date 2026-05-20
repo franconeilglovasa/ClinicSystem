@@ -185,6 +185,10 @@ export class ApiService {
     return this.http.post<AISuggestion>(`/api/visits/${visitId}/ai-suggestions`, payload);
   }
 
+  deleteAISuggestion(visitId: string, suggestionId: string): Observable<void> {
+    return this.http.delete<void>(`/api/visits/${visitId}/ai-suggestions/${suggestionId}`);
+  }
+
   // ─── Users (Admin) ────────────────────────────────────────────────────────
   getUsers(): Observable<User[]> {
     return this.http.get<User[]>('/api/users');
