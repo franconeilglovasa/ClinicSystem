@@ -8,10 +8,18 @@ namespace ClinicSystem.Server.DTOs.AI
         public string Model { get; set; } = string.Empty;
         public string? RequestedByDoctorName { get; set; }
         public DateTime GeneratedAt { get; set; }
+        public bool IsManuallyEdited { get; set; }
+        public string? EditedByUserName { get; set; }
+        public DateTime? EditedAt { get; set; }
     }
 
     public class GenerateAISuggestionRequest
     {
         public string? AdditionalContext { get; set; }
+    }
+
+    public class UpdateAISuggestionRequest
+    {
+        public string? Response { get; set; }
     }
 }

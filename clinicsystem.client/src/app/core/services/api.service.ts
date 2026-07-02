@@ -189,6 +189,14 @@ export class ApiService {
     return this.http.delete<void>(`/api/visits/${visitId}/ai-suggestions/${suggestionId}`);
   }
 
+  updateAISuggestion(
+    visitId: string,
+    suggestionId: string,
+    data: { response: string }
+  ): Observable<AISuggestion> {
+    return this.http.put<AISuggestion>(`/api/visits/${visitId}/ai-suggestions/${suggestionId}`, data);
+  }
+
   // ─── Users (Admin) ────────────────────────────────────────────────────────
   getUsers(): Observable<User[]> {
     return this.http.get<User[]>('/api/users');

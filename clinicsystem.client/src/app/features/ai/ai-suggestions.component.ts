@@ -13,6 +13,9 @@ export class AiSuggestionsComponent implements OnInit {
   suggestions: AISuggestion[] = [];
   additionalContext = '';
   loading = false;
+  savingSuggestionId: string | null = null;
+  editingSuggestionId: string | null = null;
+  editedResponse = '';
 
   constructor(private api: ApiService, public auth: AuthService) {}
 
@@ -40,6 +43,38 @@ export class AiSuggestionsComponent implements OnInit {
     if (!confirm('Delete this AI suggestion?')) return;
     this.api.deleteAISuggestion(this.visitId, suggestionId).subscribe(() => {
       this.suggestions = this.suggestions.filter(s => s.suggestionId !== suggestionId);
+    });
+  }
+
+  startEdit(suggestion: AISuggestion): void {
+    this.editingSuggestionId = suggestion.suggestionId;
+    this.editedResponse = suggestion.response ?? '';
+  }
+
+  cancelEdit(): void {
+    this.editingSuggestionId = null;
+    this.editedResponse = '';
+  }
+
+  saveEdit(suggestion: AISuggestion): void {
+    const response = this.editedResponse.trim();
+    if (!response) {
+      alert('Suggestion response cannot be empty.');
+      return;
+    }
+
+    this.savingSuggestionId = suggestion.suggestionId;
+    this.api.updateAISuggestion(this.visitId, suggestion.suggestionId, { response }).subscribe({
+      next: updated => {
+        this.suggestions = this.suggestions.map(s =>
+          s.suggestionId === updated.suggestionId ? updated : s
+        );
+        this.savingSuggestionId = null;
+        this.cancelEdit();
+      },
+      error: () => {
+        this.savingSuggestionId = null;
+      }
     });
   }
 }

@@ -227,4 +227,7 @@ export interface AISuggestion {
   model: string;
   requestedByDoctorName?: string;
   generatedAt: string;
+  isManuallyEdited: boolean;
+  editedByUserName?: string;
+  editedAt?: string;
 }

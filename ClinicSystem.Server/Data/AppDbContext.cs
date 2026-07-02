@@ -188,6 +188,13 @@ namespace ClinicSystem.Server.Data
                 .HasForeignKey(a => a.RequestedByDoctorId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // AISuggestion - EditedBy user no cascade
+            builder.Entity<AISuggestion>()
+                .HasOne(a => a.EditedByUser)
+                .WithMany()
+                .HasForeignKey(a => a.EditedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Ignore computed properties not mapped to columns
             builder.Entity<Patient>().Ignore(p => p.FullName);
             builder.Entity<Patient>().Ignore(p => p.Age);

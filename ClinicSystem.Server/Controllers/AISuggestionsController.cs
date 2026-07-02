@@ -29,6 +29,7 @@ namespace ClinicSystem.Server.Controllers
         {
             var suggestions = await _db.AISuggestions
                 .Include(a => a.RequestedByDoctor)
+                .Include(a => a.EditedByUser)
                 .Where(a => a.VisitId == visitId)
                 .OrderByDescending(a => a.GeneratedAt)
                 .Select(a => new AISuggestionDto
@@ -38,7 +39,10 @@ namespace ClinicSystem.Server.Controllers
                     Response = a.Response,
                     Model = a.Model,
                     RequestedByDoctorName = a.RequestedByDoctor != null ? a.RequestedByDoctor.FullName : null,
-                    GeneratedAt = a.GeneratedAt
+                    GeneratedAt = a.GeneratedAt,
+                    IsManuallyEdited = a.EditedAt != null,
+                    EditedByUserName = a.EditedByUser != null ? a.EditedByUser.FullName : null,
+                    EditedAt = a.EditedAt
                 }).ToListAsync();
 
             return Ok(suggestions);
@@ -83,7 +87,59 @@ namespace ClinicSystem.Server.Controllers
                 VisitId = visitId,
                 Response = response,
                 Model = suggestion.Model,
-                GeneratedAt = suggestion.GeneratedAt
+                GeneratedAt = suggestion.GeneratedAt,
+                IsManuallyEdited = false,
+                EditedByUserName = null,
+                EditedAt = null
+            });
+        }
+
+        [HttpPut("{suggestionId}")]
+        [Authorize(Roles = "Admin,Doctor")]
+        public async Task<IActionResult> UpdateSuggestion(Guid visitId, Guid suggestionId, [FromBody] UpdateAISuggestionRequest request)
+        {
+            var suggestion = await _db.AISuggestions
+                .Include(a => a.RequestedByDoctor)
+                .Include(a => a.EditedByUser)
+                .FirstOrDefaultAsync(a => a.SuggestionId == suggestionId && a.VisitId == visitId);
+
+            if (suggestion == null) return NotFound();
+
+            var trimmedResponse = request.Response?.Trim();
+            if (string.IsNullOrWhiteSpace(trimmedResponse))
+            {
+                return BadRequest(new { message = "Suggestion response cannot be empty." });
+            }
+
+            var editorId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+
+            suggestion.Response = trimmedResponse;
+            suggestion.EditedByUserId = editorId;
+            suggestion.EditedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+
+            var editedByName = suggestion.EditedByUser?.FullName;
+            if (string.IsNullOrEmpty(editedByName) && !string.IsNullOrEmpty(editorId))
+            {
+                editedByName = await _db.Users
+                    .Where(u => u.Id == editorId)
+                    .Select(u => u.FullName)
+                    .FirstOrDefaultAsync();
+            }
+
+            return Ok(new AISuggestionDto
+            {
+                SuggestionId = suggestion.SuggestionId,
+                VisitId = suggestion.VisitId,
+                Response = suggestion.Response,
+                Model = suggestion.Model,
+                RequestedByDoctorName = suggestion.RequestedByDoctor?.FullName,
+                GeneratedAt = suggestion.GeneratedAt,
+                IsManuallyEdited = suggestion.EditedAt != null,
+                EditedByUserName = editedByName,
+                EditedAt = suggestion.EditedAt
             });
         }
 

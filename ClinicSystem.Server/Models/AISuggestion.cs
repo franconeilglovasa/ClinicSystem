@@ -30,6 +30,13 @@ namespace ClinicSystem.Server.Models
         [ForeignKey(nameof(RequestedByDoctorId))]
         public ApplicationUser? RequestedByDoctor { get; set; }
 
+        public string? EditedByUserId { get; set; }
+
+        [ForeignKey(nameof(EditedByUserId))]
+        public ApplicationUser? EditedByUser { get; set; }
+
+        public DateTime? EditedAt { get; set; }
+
         public DateTime GeneratedAt { get; set; } = DateTime.UtcNow;
     }
 }
