@@ -62,7 +62,14 @@ namespace ClinicSystem.Server.Services
 
         public string GetAbsolutePath(string relativePath)
         {
-            return Path.Combine(_environment.ContentRootPath, relativePath);
+            // Support both legacy paths ("uploads/...") and current paths ("wwwroot/uploads/...").
+            var normalized = relativePath.Replace('\\', '/').TrimStart('/');
+            if (normalized.StartsWith("uploads/", StringComparison.OrdinalIgnoreCase))
+            {
+                normalized = $"wwwroot/{normalized}";
+            }
+
+            return Path.Combine(_environment.ContentRootPath, normalized);
         }
 
         public bool DeleteFile(string relativePath)

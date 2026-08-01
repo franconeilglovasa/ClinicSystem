@@ -206,7 +206,11 @@ namespace ClinicSystem.Server
 
             // Keep seed idempotent: if patients exist, do not duplicate sample records.
             if (await db.Patients.AnyAsync())
+            {
+                // Existing databases may predate newer lab seed records.
+                await EnsureLabSeedBackfillAsync(db, labTech.Id);
                 return;
+            }
 
             var now = DateTime.UtcNow;
 
@@ -479,6 +483,17 @@ namespace ClinicSystem.Server
                 Status = LabRequestStatus.Pending,
                 RequestedAt = now.AddHours(-2.5)
             };
+            var labReq8 = new LabRequest
+            {
+                VisitId = visit3.VisitId,
+                PatientId = patient4.PatientId,
+                RequestedByDoctorId = doctor.Id,
+                TestType = "Chemistry",
+                TestName = "Serum Lipase",
+                Notes = "Evaluate possible pancreatic involvement.",
+                Status = LabRequestStatus.Completed,
+                RequestedAt = now.AddHours(-2.7)
+            };
 
             // visit4: Carlo Santos — chest pain, urgent cardiac workup
             db.Vitals.Add(new Vitals
@@ -522,7 +537,7 @@ namespace ClinicSystem.Server
                 TestType = "Cardiac",
                 TestName = "Troponin I (STAT)",
                 Notes = "Urgent — rule out NSTEMI.",
-                Status = LabRequestStatus.InProgress,
+                Status = LabRequestStatus.Completed,
                 RequestedAt = now.AddMinutes(-40)
             };
             var labReq6 = new LabRequest
@@ -548,7 +563,62 @@ namespace ClinicSystem.Server
                 RequestedAt = now.AddMinutes(-40)
             };
 
-            db.LabRequests.AddRange(labReq2, labReq3, labReq4, labReq5, labReq6, labReq7);
+            db.LabRequests.AddRange(labReq2, labReq3, labReq4, labReq5, labReq6, labReq7, labReq8);
+
+            var labResult2 = new LabResult
+            {
+                RequestId = labReq8.RequestId,
+                LabTechId = labTech.Id,
+                Findings = "Serum lipase within normal limits.",
+                Notes = "Lipase 38 U/L (reference 13-60 U/L). Acute pancreatitis less likely.",
+                ResultDate = now.AddHours(-2.1),
+                CreatedAt = now.AddHours(-2.1)
+            };
+
+            var labResult3 = new LabResult
+            {
+                RequestId = labReq5.RequestId,
+                LabTechId = labTech.Id,
+                Findings = "Initial troponin mildly elevated.",
+                Notes = "Troponin I 0.09 ng/mL (upper reference limit <0.04). Recommend repeat in 3 hours.",
+                ResultDate = now.AddMinutes(-22),
+                CreatedAt = now.AddMinutes(-22)
+            };
+
+            db.LabResults.AddRange(labResult2, labResult3);
+
+            var labAttachments = new List<LabResultAttachment>
+            {
+                new()
+                {
+                    ResultId = labResult.ResultId,
+                    FileName = "cbc-result-summary.pdf",
+                    FilePath = "wwwroot/uploads/lab/cbc-result-summary.pdf",
+                    FileType = ".pdf",
+                    FileSize = 19_177,
+                    UploadedAt = now.AddHours(-2.9)
+                },
+                new()
+                {
+                    ResultId = labResult2.ResultId,
+                    FileName = "serum-lipase-report.pdf",
+                    FilePath = "wwwroot/uploads/lab/serum-lipase-report.pdf",
+                    FileType = ".pdf",
+                    FileSize = 17_000,
+                    UploadedAt = now.AddHours(-2.0)
+                },
+                new()
+                {
+                    ResultId = labResult3.ResultId,
+                    FileName = "troponin-stat-slip.jpg",
+                    FilePath = "wwwroot/uploads/lab/troponin-stat-slip.jpg",
+                    FileType = ".jpg",
+                    FileSize = 1_386_059,
+                    UploadedAt = now.AddMinutes(-20)
+                }
+            };
+
+            db.LabResultAttachments.AddRange(labAttachments);
 
             var bill = new Bill
             {
@@ -596,6 +666,123 @@ namespace ClinicSystem.Server
                 RequestedByDoctorId = doctor.Id,
                 GeneratedAt = now.AddHours(-3)
             });
+
+            await db.SaveChangesAsync();
+        }
+
+        private static async Task EnsureLabSeedBackfillAsync(AppDbContext db, string? labTechId)
+        {
+            var now = DateTime.UtcNow;
+
+            var targetTests = new[]
+            {
+                "Complete Blood Count",
+                "Liver Function Test",
+                "Troponin I (STAT)",
+                "Serum Lipase"
+            };
+
+            var requests = await db.LabRequests
+                .Include(r => r.Result)
+                .Where(r => targetTests.Contains(r.TestName))
+                .ToListAsync();
+
+            if (requests.Count == 0)
+                return;
+
+            var requestByTest = requests
+                .GroupBy(r => r.TestName)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(r => r.RequestedAt).First());
+
+            var resultTemplates = new Dictionary<string, (string Findings, string Notes, DateTime ResultDate)>
+            {
+                ["Complete Blood Count"] = (
+                    "Mild leukocytosis.",
+                    "WBC 11.8 x10^9/L; neutrophil predominance.",
+                    now.AddHours(-3)
+                ),
+                ["Liver Function Test"] = (
+                    "Mild ALT elevation; bilirubin normal.",
+                    "ALT 58 U/L, AST 41 U/L, total bilirubin 0.9 mg/dL.",
+                    now.AddHours(-2.2)
+                ),
+                ["Troponin I (STAT)"] = (
+                    "Initial troponin mildly elevated.",
+                    "Troponin I 0.09 ng/mL (upper reference limit <0.04). Recommend repeat in 3 hours.",
+                    now.AddMinutes(-22)
+                ),
+                ["Serum Lipase"] = (
+                    "Serum lipase within normal limits.",
+                    "Lipase 38 U/L (reference 13-60 U/L). Acute pancreatitis less likely.",
+                    now.AddHours(-2.1)
+                )
+            };
+
+            foreach (var (testName, template) in resultTemplates)
+            {
+                if (!requestByTest.TryGetValue(testName, out var request))
+                    continue;
+
+                request.Status = LabRequestStatus.Completed;
+
+                if (request.Result == null)
+                {
+                    db.LabResults.Add(new LabResult
+                    {
+                        RequestId = request.RequestId,
+                        LabTechId = labTechId,
+                        Findings = template.Findings,
+                        Notes = template.Notes,
+                        ResultDate = template.ResultDate,
+                        CreatedAt = template.ResultDate
+                    });
+                }
+            }
+
+            await db.SaveChangesAsync();
+
+            var refreshedRequests = await db.LabRequests
+                .Include(r => r.Result)
+                .Where(r => targetTests.Contains(r.TestName))
+                .ToListAsync();
+
+            var refreshedByTest = refreshedRequests
+                .Where(r => r.Result != null)
+                .GroupBy(r => r.TestName)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(r => r.RequestedAt).First());
+
+            var attachmentTemplates = new[]
+            {
+                (TestName: "Complete Blood Count", FileName: "cbc-result-summary.pdf", FileType: ".pdf"),
+                (TestName: "Serum Lipase", FileName: "serum-lipase-report.pdf", FileType: ".pdf"),
+                (TestName: "Troponin I (STAT)", FileName: "troponin-stat-slip.jpg", FileType: ".jpg")
+            };
+
+            foreach (var template in attachmentTemplates)
+            {
+                if (!refreshedByTest.TryGetValue(template.TestName, out var request) || request.Result == null)
+                    continue;
+
+                var exists = await db.LabResultAttachments.AnyAsync(a =>
+                    a.ResultId == request.Result.ResultId && a.FileName == template.FileName);
+
+                if (exists)
+                    continue;
+
+                var relativePath = $"wwwroot/uploads/lab/{template.FileName}";
+                var absolutePath = Path.Combine(Directory.GetCurrentDirectory(), relativePath);
+                var size = File.Exists(absolutePath) ? new FileInfo(absolutePath).Length : 0;
+
+                db.LabResultAttachments.Add(new LabResultAttachment
+                {
+                    ResultId = request.Result.ResultId,
+                    FileName = template.FileName,
+                    FilePath = relativePath,
+                    FileType = template.FileType,
+                    FileSize = size,
+                    UploadedAt = now.AddMinutes(-20)
+                });
+            }
 
             await db.SaveChangesAsync();
         }
